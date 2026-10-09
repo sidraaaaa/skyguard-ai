@@ -284,30 +284,33 @@ tab1, tab2, tab3 = st.tabs(["📡 Live Operations Radar", "🛡️ Safety & Risk
 # TAB 1: RADAR & FLIGHT TRACKING
 with tab1:
     col_map, col_details = st.columns([3, 1])
-    
+
     with col_map:
-        fig = px.scatter_mapbox(
+        fig = px.scatter_map(
             flights_df,
             lat="lat",
             lon="lon",
             hover_name="Callsign",
-            hover_data=["Country", "Altitude_m", "Velocity_m_s"],
+            hover_data=["Country", "Altitude_m", "Velocity_m_s", "Heading"],
             zoom=3.4,
             center={"lat": 39.8283, "lon": -98.5795},
             height=520
         )
-        fig.update_layout(
-            mapbox_style="carto-darkmatter",
-            margin={"r": 0, "t": 0, "l": 0, "b": 0}
-        )
+
         fig.update_traces(
             marker=dict(
-                size=14,
-                symbol="airport",
-                color="#00FF66",
-                opacity=0.95
+                size=12,
+                color=flights_df["Velocity_m_s"],
+                colorscale="Viridis",
+                opacity=0.9
             )
         )
+
+        fig.update_layout(
+            map_style="carto-darkmatter",
+            margin={"r": 0, "t": 0, "l": 0, "b": 0}
+        )
+
         st.plotly_chart(fig, use_container_width=True)
 
     with col_details:
