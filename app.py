@@ -287,42 +287,56 @@ with tab1:
 
     with col_map:
         if not flights_df.empty:
-            fig = go.Figure(go.Scattermap(
-                lat=flights_df["lat"],
-                lon=flights_df["lon"],
-                mode="markers",
-                marker=dict(
-                    size=12,
-                    color=flights_df["Velocity_m_s"],
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="Velocity (m/s)"),
-                    opacity=0.9
-                ),
-                text=flights_df["Callsign"],
-                hoverinfo="text",
-                hovertext=[
-                    f"<b>Callsign:</b> {row.get('Callsign', 'N/A')}<br>"
-                    f"<b>Country:</b> {row.get('Country', 'N/A')}<br>"
-                    f"<b>Altitude:</b> {row.get('Altitude_m', 0):,} m<br>"
-                    f"<b>Airspeed:</b> {row.get('Velocity_m_s', 0)} m/s<br>"
-                    f"<b>Heading:</b> {row.get('Heading', 0)}°"
-                    for _, row in flights_df.iterrows()
-                ]
-            ))
-
-            fig.update_layout(
-                map=dict(
-                    style="carto-darkmatter",
-                    zoom=3.4,
-                    center=dict(lat=39.8283, lon=-98.5795)
-                ),
-                margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            # Map rendering using your exact scatter layout
+            fig = px.scatter_map(
+                flights_df,
+                lat="lat",
+                lon="lon",
+                hover_name="Callsign",
+                hover_data=["Country", "Altitude_m", "Velocity_m_s"],
+                zoom=3.4,
+                center={"lat": 39.8283, "lon": -98.5795},
                 height=520
             )
+
+            fig.update_layout(
+                map_style="carto-darkmatter",
+                margin={"r": 0, "t": 0, "l": 0, "b": 0}
+            )
+
+            fig.update_traces(
+                marker=dict(
+                    size=14,
+                    color="#00FF66",  # Your green radar marker
+                    opacity=0.95
+                )
+            )
+
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("⚠️ No live flight telemetry available. Please click Refresh Telemetry.")
+            st.warning("⚠️ No live flight telemetry available. Click Sync Fresh Telemetry.")
+
+    with col_details:
+        st.subheader("✈️ Flight Drilldown")
+
+        if not flights_df.empty:
+            selected_callsign = st.selectbox(
+                "Select Flight Callsign:", 
+                flights_df["Callsign"].unique()
+            )
+            selected_flight = flights_df[flights_df["Callsign"] == selected_callsign].iloc[0]
+
+            st.markdown(f"**Origin Country:** `{selected_flight['Country']}`")
+            st.markdown(f"**Current Altitude:** `{selected_flight['Altitude_m']} m`")
+            st.markdown(f"**Airspeed:** `{selected_flight['Velocity_m_s']} m/s`")
+            st.markdown(f"**Coordinates:** `{selected_flight['lat']:.2f}, {selected_flight['lon']:.2f}`")
+        else:
+            st.info("No active flights to display.")
+
+        if st.button("🔄 Sync Fresh Telemetry", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+
 
 
 # TAB 2: AI RISK EXTRACTION
