@@ -307,6 +307,7 @@ with tab1:
             fig.update_traces(
                 marker=dict(
                     size=14,
+                    symbol="airport",
                     color="#00FF66",  # Your green radar marker
                     opacity=0.95
                 )
